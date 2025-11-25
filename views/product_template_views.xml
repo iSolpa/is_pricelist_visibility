@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Add pricelist prices display to product template form view -->
+    <record id="product_template_form_view_inherit" model="ir.ui.view">
+        <field name="name">product.template.form.inherit</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <!-- Add pricelist prices below list_price -->
+            <xpath expr="//field[@name='list_price']" position="after">
+                <field name="pricelist_prices_display" readonly="1" nolabel="1" 
+                       class="mt-2" invisible="not pricelist_prices_display"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Add pricelist info field (hidden, for data storage) -->
+    <record id="product_template_form_view_inherit_info" model="ir.ui.view">
+        <field name="name">product.template.form.inherit.info</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='list_price']" position="after">
+                <field name="pricelist_prices_info" invisible="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

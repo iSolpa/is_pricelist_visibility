@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Add show_in_product_views field to pricelist form view -->
+    <record id="product_pricelist_view_form_inherit" model="ir.ui.view">
+        <field name="name">product.pricelist.form.inherit</field>
+        <field name="model">product.pricelist</field>
+        <field name="inherit_id" ref="product.product_pricelist_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='company_id']" position="after">
+                <field name="show_in_product_views" widget="boolean_toggle"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Add show_in_product_views field to pricelist tree view -->
+    <record id="product_pricelist_view_tree_inherit" model="ir.ui.view">
+        <field name="name">product.pricelist.tree.inherit</field>
+        <field name="model">product.pricelist</field>
+        <field name="inherit_id" ref="product.product_pricelist_view_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='currency_id']" position="before">
+                <field name="show_in_product_views" widget="boolean_toggle"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
