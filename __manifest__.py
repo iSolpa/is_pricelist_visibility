@@ -1,6 +1,6 @@
 {
     'name': 'iS Pricelist Visibility',
-    'version': '17.0.1.0.4',
+    'version': '17.0.1.0.5',
     'category': 'Sales',
     'summary': 'Show configurable pricelist prices in product views',
     'description': """
