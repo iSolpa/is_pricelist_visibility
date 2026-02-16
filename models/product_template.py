@@ -65,10 +65,6 @@ class ProductTemplate(models.Model):
             product.pricelist_prices_info = json.dumps(prices_data)
             product.pricelist_prices_display = ' '.join(html_parts) if html_parts else ''
             product.pricelist_prices_compact = ' | '.join(compact_parts) if compact_parts else ''
-            
-            # Set dynamic currency fields
-            for pricelist in visible_pricelists:
-                setattr(product, f'currency_id_{pricelist.id}', pricelist.currency_id.id)
 
     def get_pricelist_price(self, pricelist_id):
         """Get price for a specific pricelist"""
@@ -182,11 +178,10 @@ class ProductTemplate(models.Model):
                     price = record.get_pricelist_price(pricelist_id)
                     result['records'][i][field_name] = price
                     
-                    # Also set the currency field if requested
+                    # Always set the currency field for monetary widget
                     currency_field_name = f'currency_id_{pricelist_id}'
-                    if currency_field_name in currency_specs:
-                        pricelist = self.env['product.pricelist'].browse(pricelist_id)
-                        result['records'][i][currency_field_name] = [pricelist.currency_id.id, pricelist.currency_id.name]
+                    pricelist = self.env['product.pricelist'].browse(pricelist_id)
+                    result['records'][i][currency_field_name] = pricelist.currency_id.id
 
         return result
 
@@ -211,10 +206,9 @@ class ProductTemplate(models.Model):
                     price = record.get_pricelist_price(pricelist_id)
                     record_data[field_name] = price
                     
-                    # Also set the currency field if requested
+                    # Always set the currency field for monetary widget
                     currency_field_name = f'currency_id_{pricelist_id}'
-                    if currency_field_name in currency_specs:
-                        pricelist = self.env['product.pricelist'].browse(pricelist_id)
-                        record_data[currency_field_name] = [pricelist.currency_id.id, pricelist.currency_id.name]
+                    pricelist = self.env['product.pricelist'].browse(pricelist_id)
+                    record_data[currency_field_name] = pricelist.currency_id.id
 
         return result
