@@ -20,10 +20,13 @@
         <field name="model">product.product</field>
         <field name="inherit_id" ref="product.product_normal_form_view"/>
         <field name="arch" type="xml">
-            <xpath expr="//group[@name='group_standard_price']" position="inside">
-                <field name="pricelist_prices_display" string="Other Pricelists"
-                       readonly="1" widget="html"
-                       invisible="not pricelist_prices_display"/>
+            <xpath expr="//group[@name='product_details']" position="after">
+                <div class="row mt-2 ms-2" invisible="not pricelist_prices_display">
+                    <label for="pricelist_prices_display" string="Other Pricelists" class="col-auto fw-bold text-muted"/>
+                    <div class="col">
+                        <field name="pricelist_prices_display" readonly="1" nolabel="1" widget="html"/>
+                    </div>
+                </div>
             </xpath>
         </field>
     </record>

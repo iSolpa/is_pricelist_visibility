@@ -10,6 +10,11 @@ class ProductPricelist(models.Model):
         default=False,
     )
 
+    display_alias = fields.Char(
+        string='Display Alias',
+        help='Short name used in product views instead of the full pricelist name. Leave empty to use the full name.',
+    )
+
     @api.model
     def get_visible_pricelists(self):
         """Get all pricelists marked as visible, across all companies"""

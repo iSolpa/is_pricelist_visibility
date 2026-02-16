@@ -42,10 +42,14 @@ class ProductProduct(models.Model):
                 })
                 
                 # Build HTML display for form view
+                display_name = pricelist.display_alias or pricelist.name
                 html_parts.append(
-                    f'<span class="badge bg-info me-1">'
-                    f'{pricelist.name}: {pricelist.currency_id.symbol}{price:.2f}'
-                    f'</span>'
+                    f'<span class="d-inline-block text-center me-2 mb-1 px-2 py-1" '
+                    f'style="background-color: #f0f0f0; border: 1px solid #ccc; border-radius: 4px;">'
+                    f'<span style="font-size: 1em; font-weight: 500; color: #333;">'
+                    f'{pricelist.currency_id.symbol}{price:.2f}</span><br/>'
+                    f'<span style="font-size: 0.75em; color: #666;">'
+                    f'{display_name}</span></span>'
                 )
             
             product.pricelist_prices_info = json.dumps(prices_data)
@@ -84,7 +88,7 @@ class ProductProduct(models.Model):
                 continue
             res[field_name] = {
                 'type': 'float',
-                'string': pricelist.name,
+                'string': pricelist.display_alias or pricelist.name,
                 'readonly': True,
                 'searchable': False,
                 'sortable': False,
@@ -116,9 +120,10 @@ class ProductProduct(models.Model):
         # Add pricelist columns
         for pricelist in visible_pricelists:
             field_name = f'pricelist_price_{pricelist.id}'
+            col_label = pricelist.display_alias or pricelist.name
             pricelist_field = etree.Element('field', {
                 'name': field_name,
-                'string': pricelist.name,
+                'string': col_label,
                 'optional': 'show',
             })
             insert_after.addnext(pricelist_field)
