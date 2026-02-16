@@ -122,24 +122,44 @@ class ProductTemplate(models.Model):
             insert_after.addnext(pricelist_field)
             insert_after = pricelist_field
 
-    def read(self, fields=None, load='_classic_read'):
-        """Override read to add dynamic pricelist price fields"""
-        # Check if we're reading pricelist price fields
-        if fields:
-            pricelist_fields = [f for f in fields if f.startswith('pricelist_price_')]
-            if pricelist_fields:
-                # Read normally first
-                result = super().read(fields=[f for f in fields if f not in pricelist_fields], load=load)
-                
-                # Add pricelist prices
-                for record in result:
-                    product = self.browse(record['id'])
-                    for pfield in pricelist_fields:
-                        # Extract pricelist_id from field name
-                        pricelist_id = int(pfield.replace('pricelist_price_', ''))
-                        price = product.get_pricelist_price(pricelist_id)
-                        record[pfield] = price
-                
-                return result
-        
-        return super().read(fields=fields, load=load)
+    @api.model
+    def web_search_read(self, domain, specification, offset=0, limit=None, order=None, count_limit=None):
+        """Handle dynamic pricelist fields in search read"""
+        pricelist_specs = {}
+        clean_spec = dict(specification)
+        for key in list(clean_spec):
+            if key.startswith('pricelist_price_'):
+                pricelist_specs[key] = clean_spec.pop(key)
+
+        result = super().web_search_read(domain, clean_spec, offset=offset, limit=limit, order=order, count_limit=count_limit)
+
+        if pricelist_specs and result.get('records'):
+            record_ids = [r['id'] for r in result['records']]
+            records = self.browse(record_ids)
+            for i, record in enumerate(records):
+                for field_name in pricelist_specs:
+                    pricelist_id = int(field_name.replace('pricelist_price_', ''))
+                    price = record.get_pricelist_price(pricelist_id)
+                    result['records'][i][field_name] = price
+
+        return result
+
+    def web_read(self, specification):
+        """Handle dynamic pricelist fields in web read"""
+        pricelist_specs = {}
+        clean_spec = dict(specification)
+        for key in list(clean_spec):
+            if key.startswith('pricelist_price_'):
+                pricelist_specs[key] = clean_spec.pop(key)
+
+        result = super().web_read(clean_spec)
+
+        if pricelist_specs:
+            for record_data in result:
+                record = self.browse(record_data['id'])
+                for field_name in pricelist_specs:
+                    pricelist_id = int(field_name.replace('pricelist_price_', ''))
+                    price = record.get_pricelist_price(pricelist_id)
+                    record_data[field_name] = price
+
+        return result
