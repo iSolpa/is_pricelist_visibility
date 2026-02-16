@@ -37,7 +37,7 @@ When viewing a product in form view:
 
 ## Technical Details
 
-- **Module Name**: abi_pricelist_visibility
+- **Module Name**: is_pricelist_visibility
 - **Version**: 17.0.1.0.0
 - **Depends**: product, sale
 - **Odoo Version**: 17.0

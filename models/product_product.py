@@ -66,67 +66,63 @@ class ProductProduct(models.Model):
         return price
 
     @api.model
-    def fields_view_get(self, view_id=None, view_type='form', toolbar=False, submenu=False):
+    def _get_view(self, view_id=None, view_type='form', **options):
         """Dynamically add pricelist price fields to tree views"""
-        result = super().fields_view_get(view_id=view_id, view_type=view_type, toolbar=toolbar, submenu=submenu)
-        
-        if view_type == 'tree':
-            result = self._add_pricelist_columns_to_tree(result)
-        
-        return result
+        arch, view = super()._get_view(view_id, view_type, **options)
+        if view_type in ('tree', 'list'):
+            self._add_pricelist_columns_to_tree(arch)
+        return arch, view
 
-    def _add_pricelist_columns_to_tree(self, result):
+    @api.model
+    def fields_get(self, allfields=None, attributes=None):
+        """Include dynamic pricelist fields in field definitions"""
+        res = super().fields_get(allfields, attributes)
+        visible_pricelists = self.env['product.pricelist'].get_visible_pricelists()
+        for pricelist in visible_pricelists:
+            field_name = f'pricelist_price_{pricelist.id}'
+            if allfields and field_name not in allfields:
+                continue
+            res[field_name] = {
+                'type': 'float',
+                'string': pricelist.name,
+                'readonly': True,
+                'searchable': False,
+                'sortable': False,
+            }
+        return res
+
+    def _add_pricelist_columns_to_tree(self, arch):
         """Add pricelist price columns dynamically to tree view"""
         from lxml import etree
-        
+
         visible_pricelists = self.env['product.pricelist'].get_visible_pricelists()
         if not visible_pricelists:
-            return result
-        
-        doc = etree.XML(result['arch'])
-        
+            return
+
         # Find the lst_price field or last field in tree
-        price_field = doc.xpath("//field[@name='lst_price']")
-        
+        price_field = arch.xpath("//field[@name='lst_price']")
         if not price_field:
-            price_field = doc.xpath("//field[@name='list_price']")
-        
+            price_field = arch.xpath("//field[@name='list_price']")
+
         if price_field:
             insert_after = price_field[0]
         else:
-            # Insert after last field
-            fields = doc.xpath("//field")
+            fields = arch.xpath("//field")
             if fields:
                 insert_after = fields[-1]
             else:
-                return result
-        
+                return
+
         # Add pricelist columns
         for pricelist in visible_pricelists:
             field_name = f'pricelist_price_{pricelist.id}'
-            
-            # Add field to fields dict
-            result['fields'][field_name] = {
-                'type': 'char',
-                'string': f'{pricelist.name}',
-                'readonly': True,
-            }
-            
-            # Create field element
             pricelist_field = etree.Element('field', {
                 'name': field_name,
                 'string': pricelist.name,
-                'widget': 'monetary',
-                'options': "{'currency_field': 'currency_id'}",
                 'optional': 'show',
             })
-            
-            # Insert after price field
             insert_after.addnext(pricelist_field)
             insert_after = pricelist_field
-        
-        result['arch'] = etree.tostring(doc, encoding='unicode')
-        return result
 
     def read(self, fields=None, load='_classic_read'):
         """Override read to add dynamic pricelist price fields"""
