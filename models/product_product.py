@@ -59,7 +59,7 @@ class ProductProduct(models.Model):
                     f'{display_name}</span></span>'
                 )
                 compact_parts.append(
-                    f'{display_name}: {pricelist.currency_id.symbol}{price:.2f}'
+                    f'{pricelist.currency_id.symbol}{price:.2f} {display_name}'
                 )
             
             product.pricelist_prices_info = json.dumps(prices_data)
