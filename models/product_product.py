@@ -17,6 +17,12 @@ class ProductProduct(models.Model):
         help='Display pricelist prices in form view'
     )
 
+    pricelist_prices_compact = fields.Char(
+        string='Pricelist Prices',
+        compute='_compute_pricelist_prices',
+        help='Compact pricelist prices for kanban view'
+    )
+
     @api.depends('lst_price')
     def _compute_pricelist_prices(self):
         """Compute pricelist prices for visible pricelists"""
@@ -26,6 +32,7 @@ class ProductProduct(models.Model):
         for product in self:
             prices_data = []
             html_parts = []
+            compact_parts = []
             
             for pricelist in visible_pricelists:
                 price = pricelist._get_product_price(
@@ -51,9 +58,13 @@ class ProductProduct(models.Model):
                     f'<span style="font-size: 0.75em; color: #666;">'
                     f'{display_name}</span></span>'
                 )
+                compact_parts.append(
+                    f'{display_name}: {pricelist.currency_id.symbol}{price:.2f}'
+                )
             
             product.pricelist_prices_info = json.dumps(prices_data)
             product.pricelist_prices_display = ' '.join(html_parts) if html_parts else ''
+            product.pricelist_prices_compact = ' | '.join(compact_parts) if compact_parts else ''
 
     def get_pricelist_price(self, pricelist_id):
         """Get price for a specific pricelist"""

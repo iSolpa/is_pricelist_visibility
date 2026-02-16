@@ -6,12 +6,24 @@
         <field name="model">product.template</field>
         <field name="inherit_id" ref="product.product_template_only_form_view"/>
         <field name="arch" type="xml">
-            <xpath expr="//group[@name='group_standard_price']" position="after">
-                <div class="row mt-2 ms-2" invisible="not pricelist_prices_display">
-                    <label for="pricelist_prices_display" string="Other Pricelists" class="col-auto fw-bold text-muted"/>
-                    <div class="col">
-                        <field name="pricelist_prices_display" readonly="1" nolabel="1" widget="html"/>
-                    </div>
+            <xpath expr="//group[@name='group_standard_price']/div[@name='pricing']" position="after">
+                <field name="pricelist_prices_display" nolabel="1" colspan="2"
+                       readonly="1" widget="html"
+                       invisible="not pricelist_prices_display"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Add pricelist prices to kanban view -->
+    <record id="product_template_kanban_view_inherit" model="ir.ui.view">
+        <field name="name">product.template.kanban.inherit</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_kanban_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[@name='product_lst_price']" position="after">
+                <div t-if="record.pricelist_prices_compact.value"
+                     class="text-muted small text-truncate" style="font-size: 0.8em;">
+                    <field name="pricelist_prices_compact"/>
                 </div>
             </xpath>
         </field>
