@@ -99,25 +99,12 @@ class ProductTemplate(models.Model):
             if allfields and price_field_name not in allfields:
                 continue
             res[price_field_name] = {
-                'type': 'float',
+                'type': 'monetary',
                 'string': pricelist.display_alias or pricelist.name,
                 'readonly': True,
                 'searchable': False,
                 'sortable': False,
-                'widget': 'monetary',
-                'options': {'currency_field': f'currency_id_{pricelist.id}', 'field_digits': True},
-            }
-            # Add currency field
-            currency_field_name = f'currency_id_{pricelist.id}'
-            if allfields and currency_field_name not in allfields:
-                continue
-            res[currency_field_name] = {
-                'type': 'many2one',
-                'string': 'Currency',
-                'relation': 'res.currency',
-                'readonly': True,
-                'searchable': False,
-                'sortable': False,
+                'currency_field': 'currency_id',
             }
         return res
 
@@ -150,7 +137,6 @@ class ProductTemplate(models.Model):
                 'string': col_label,
                 'optional': 'show',
                 'widget': 'monetary',
-                'options': f"{{'currency_field': 'currency_id_{pricelist.id}', 'field_digits': True}}",
             })
             insert_after.addnext(pricelist_field)
             insert_after = pricelist_field
@@ -159,13 +145,10 @@ class ProductTemplate(models.Model):
     def web_search_read(self, domain, specification, offset=0, limit=None, order=None, count_limit=None):
         """Handle dynamic pricelist fields in search read"""
         pricelist_specs = {}
-        currency_specs = {}
         clean_spec = dict(specification)
         for key in list(clean_spec):
             if key.startswith('pricelist_price_'):
                 pricelist_specs[key] = clean_spec.pop(key)
-            elif key.startswith('currency_id_'):
-                currency_specs[key] = clean_spec.pop(key)
 
         result = super().web_search_read(domain, clean_spec, offset=offset, limit=limit, order=order, count_limit=count_limit)
 
@@ -177,24 +160,16 @@ class ProductTemplate(models.Model):
                     pricelist_id = int(field_name.replace('pricelist_price_', ''))
                     price = record.get_pricelist_price(pricelist_id)
                     result['records'][i][field_name] = price
-                    
-                    # Always set the currency field for monetary widget
-                    currency_field_name = f'currency_id_{pricelist_id}'
-                    pricelist = self.env['product.pricelist'].browse(pricelist_id)
-                    result['records'][i][currency_field_name] = pricelist.currency_id.id
 
         return result
 
     def web_read(self, specification):
         """Handle dynamic pricelist fields in web read"""
         pricelist_specs = {}
-        currency_specs = {}
         clean_spec = dict(specification)
         for key in list(clean_spec):
             if key.startswith('pricelist_price_'):
                 pricelist_specs[key] = clean_spec.pop(key)
-            elif key.startswith('currency_id_'):
-                currency_specs[key] = clean_spec.pop(key)
 
         result = super().web_read(clean_spec)
 
@@ -205,10 +180,5 @@ class ProductTemplate(models.Model):
                     pricelist_id = int(field_name.replace('pricelist_price_', ''))
                     price = record.get_pricelist_price(pricelist_id)
                     record_data[field_name] = price
-                    
-                    # Always set the currency field for monetary widget
-                    currency_field_name = f'currency_id_{pricelist_id}'
-                    pricelist = self.env['product.pricelist'].browse(pricelist_id)
-                    record_data[currency_field_name] = pricelist.currency_id.id
 
         return result
