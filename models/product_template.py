@@ -142,6 +142,13 @@ class ProductTemplate(models.Model):
             insert_after = pricelist_field
 
     @api.model
+    def web_read_group(self, domain, fields, groupby, limit=None, offset=0, orderby=False, lazy=True, expand=False, expand_limit=None, expand_orderby=False):
+        """Handle dynamic pricelist fields in grouped views"""
+        # Strip pricelist fields - they can't be aggregated in grouped views
+        clean_fields = [f for f in fields if not f.startswith('pricelist_price_')]
+        return super().web_read_group(domain, clean_fields, groupby, limit=limit, offset=offset, orderby=orderby, lazy=lazy, expand=expand, expand_limit=expand_limit, expand_orderby=expand_orderby)
+
+    @api.model
     def web_search_read(self, domain, specification, offset=0, limit=None, order=None, count_limit=None):
         """Handle dynamic pricelist fields in search read"""
         pricelist_specs = {}
