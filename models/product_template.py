@@ -69,7 +69,7 @@ class ProductTemplate(models.Model):
     def get_pricelist_price(self, pricelist_id):
         """Get price for a specific pricelist"""
         self.ensure_one()
-        pricelist = self.env['product.pricelist'].browse(pricelist_id)
+        pricelist = self.env['product.pricelist'].sudo().browse(pricelist_id)
         if not pricelist.exists():
             return 0.0
         
