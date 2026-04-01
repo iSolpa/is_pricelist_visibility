@@ -18,6 +18,6 @@ class ProductPricelist(models.Model):
     @api.model
     def get_visible_pricelists(self):
         """Get all pricelists marked as visible, across all companies"""
-        return self.search([
+        return self.sudo().search([
             ('show_in_product_views', '=', True),
-        ])
+        ], order='sequence, id')
